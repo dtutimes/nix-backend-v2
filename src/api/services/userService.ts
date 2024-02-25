@@ -69,3 +69,19 @@ export const createNewUser = async (name: string, email: string) => {
 
   return user;
 };
+
+export const updateUser = async (id: string, data: any) => {
+  try {
+    // Find the user by ID and update the information
+    const updatedUser = await User.findByIdAndUpdate(id, data, {
+      new: true, // Return the updated document
+      runValidators: true, // Run validators to ensure data validity
+    }).populate<{ role_id: IRole }>("role_id");
+
+    return updatedUser;
+  } catch (error) {
+    // Handle error, log, or throw further
+    console.error("Error updating user:", error);
+    throw error;
+  }
+};
