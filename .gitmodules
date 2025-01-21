@@ -1,3 +1,9 @@
 [submodule "src/commonlib"]
 	path = src/commonlib
 	url = git@github.com:dtutimes/central-information.git
+[submodule "nix-frontend-v2"]
+	path = nix-frontend-v2
+	url = https://github.com/pushkardev123/nix-frontend-v2
+[submodule "central-information"]
+	path = central-information
+	url = https://github.com/pushkardev123/central-information
