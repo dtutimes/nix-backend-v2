@@ -29,13 +29,13 @@ jobs:
         run: cd $GITHUB_WORKSPACE
 
       - name: Copy source code to target dir
-        run: rsync -avz $GITHUB_WORKSPACE/ ~/TeamPortal/nix-backend/
+        run: rsync -avz $GITHUB_WORKSPACE/ ~/dtutimes-backend/
 
       - name: Get to target dir
-        run: cd ~/TeamPortal/nix-backend/
+        run: cd ~/dtutimes-backend
 
       - name: Install dependencies
         run: npm i
 
       - name: Deploy to web
-        run: pm2 restart Backend
+        run: pm2 restart NixBackend
