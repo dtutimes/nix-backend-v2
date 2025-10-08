@@ -9,6 +9,7 @@
     "strictNullChecks": true,
     "typeRoots": ["./src/types", "./node_modules/@types"],
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       // Adjust based on your project structure
       "@/*": ["./src/*"],

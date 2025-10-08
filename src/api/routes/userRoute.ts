@@ -8,6 +8,7 @@ import {
   updateUserController,
   deleteUserController,
   postBulkUserController,
+  verifyUserRole,
 } from "../controllers/userController";
 import { protect } from "../middlewares/authMiddleware";
 import protected_route from "../middlewares/permsMiddlewareInit";
@@ -27,6 +28,8 @@ router.route("/current-user").get(protect, getCurrentUserController);
 
 router.route("/get-user/:id").get(protect, getUserController);
 
+router.route("/verify-role").get(protect, verifyUserRole);
+
 router
   .route("/post-add-users")
   .post(protect, createBulkProfileProtect, postBulkUserController);
@@ -41,7 +44,6 @@ router
   );
 
 router
-  .route("delete-user/:id")
+  .route("/delete-user/:id")
   .delete(protect, deleteProfileProtect, deleteUserController);
-
 export default router;

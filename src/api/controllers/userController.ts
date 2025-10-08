@@ -11,6 +11,7 @@ import { IUser, PopulatedUser, User } from "../models/userModel";
 import * as UserService from "../services/userService";
 import { Blog } from "../models/blogModel";
 import { assertHydratedUser, assertProtectedUser } from "../helpers/assertions";
+import { Request, Response, NextFunction } from "express";
 
 /**
  * @description Retrieves all team members excluding those with the role MainWebsiteRole.DoNotDisplay.
@@ -392,62 +393,107 @@ export const permsUpdateController = asyncErrorHandler(
  * - Sends a success response indicating the user account was deleted successfully.
  */
 
-export const deleteUserController = asyncErrorHandler(
-  async (req, res, next) => {
-    const { id } = req.params;
-    const user_id = new mongoose.Types.ObjectId(id);
-    const target_user_id = new mongoose.Types.ObjectId(
-      req.body.target_user_id as string,
+
+/**
+ * @description Verifies if the current user has superuser role
+ * @route GET /verify-role
+ */
+export const verifyUserRole = asyncErrorHandler(async (req, res, next) => {
+  assertProtectedUser(res);
+  const user_id = res.locals.user_id;
+  
+  if (!user_id) {
+    const error = new CustomError(
+      "User not authenticated",
+      StatusCode.UNAUTHORIZED,
     );
-    const new_owner = new mongoose.Types.ObjectId(process.env.EMAIL_USER_OBJID);
+    return next(error);
+  }
 
-    if (target_user_id.equals(new_owner)) {
-      const err = new CustomError(
-        "You cannot delete the default account!",
-        StatusCode.FORBIDDEN,
-      );
-      return next(err);
+  // Find the user in your database
+  const user = await User.findById(user_id);
+  if (!user) {
+    const error = new CustomError(
+      "User not found",
+      StatusCode.NOT_FOUND,
+    );
+    return next(error);
+  }
+
+  // Check if user is superuser
+  const isSuperuser = user.is_superuser === true;
+  
+  res.status(StatusCode.OK).json({ 
+    status: "success",
+    message: "Role verified successfully",
+    data: {
+      isAuthorized: isSuperuser,
+      role: user.role_id,
+      userId: user._id,
+      is_superuser: user.is_superuser
     }
+  });
+});
 
-    const user = await UserService.checkUserExists({ _id: target_user_id });
+/**
+ * @description Deletes a user account
+ * @route DELETE /delete-user/:id
+ */
+export const deleteUserController = asyncErrorHandler(async (req, res, next) => {
+  assertProtectedUser(res);
+  const user_id = res.locals.user_id;
+  const { id } = req.params;
+  
+  // Validate the ID format first
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    const error = new CustomError(
+      "Invalid user ID format",
+      StatusCode.BAD_REQUEST,
+    );
+    return next(error);
+  }
 
-    if (!user) {
+  const target_user_id = new mongoose.Types.ObjectId(id);
+
+  // Check if user exists - use the correct model and field names
+  const user = await User.findById(target_user_id);
+  if (!user) {
+    const error = new CustomError(
+      "User not found",
+      StatusCode.NOT_FOUND,
+    );
+    return next(error);
+  }
+
+  // Prevent users from deleting their own account
+  if (target_user_id.equals(user_id)) {
+    const error = new CustomError(
+      "You cannot delete your own account",
+      StatusCode.FORBIDDEN,
+    );
+    return next(error);
+  }
+
+  // Check if user is superuser and prevent deletion of last superuser
+  if (user.is_superuser === true) {
+    const superuserCount = await User.countDocuments({ is_superuser: true });
+    if (superuserCount <= 1) {
       const error = new CustomError(
-        "Unable to get user account!",
-        StatusCode.NOT_FOUND,
+        "Cannot delete the last superuser",
+        StatusCode.FORBIDDEN,
       );
       return next(error);
     }
+  }
 
-    if (target_user_id.equals(user_id)) {
-      const err = new CustomError(
-        "You cannot delete your own account",
-        StatusCode.FORBIDDEN,
-      );
-      return next(err);
+  // Delete the user
+  await User.findByIdAndDelete(target_user_id);
+  
+  res.status(StatusCode.OK).json({ 
+    status: "success",
+    message: "User deleted successfully",
+    data: {
+      deletedUserId: id
     }
-
-    const ownership = await Blog.updateMany(
-      {
-        user: user._id,
-      },
-      { user: new_owner },
-    );
-
-    console.log(
-      "User",
-      user,
-      "deleted by",
-      user_id,
-      "upgraded ownership blogs result",
-      ownership,
-    );
-
-    await user.deleteOne();
-
-    res.status(StatusCode.OK).json({
-      status: "success",
-      message: "User deleted successfully",
-    });
-  },
-);
+  });
+});

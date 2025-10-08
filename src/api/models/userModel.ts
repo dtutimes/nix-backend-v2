@@ -15,6 +15,7 @@ export interface IUser {
   removed_permissions?: Permission[];
   date_joined: Date;
   team_role: MainWebsiteRole;
+  is_superuser?: boolean;
 }
 
 const userSchema = new Schema<IUser>(
@@ -68,6 +69,10 @@ const userSchema = new Schema<IUser>(
       type: Number,
       enum: MainWebsiteRole,
       default: MainWebsiteRole.DoNotDisplay,
+    },
+    is_superuser: { 
+      type: Boolean,
+      default: false,
     },
   },
   {

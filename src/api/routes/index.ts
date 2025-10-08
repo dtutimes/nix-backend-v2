@@ -12,7 +12,6 @@ import dashboardRouter from "./dashboardRoute";
 import totpRouter from "./totpRouter";
 import notificationRouter from "./notificationRouter";
 import eventRouter from "./eventRouter";
-
 const router = express.Router();
 
 router.use("/event", eventRouter);
