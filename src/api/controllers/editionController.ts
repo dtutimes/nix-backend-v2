@@ -142,7 +142,7 @@ export const deleteEdition = asyncErrorHandler(async (req, res, next) => {
     return next(error);
   }
 
-  console.log("Edition deleted", edition, "by user", req.body.email);
+  console.log("Edition deleted", edition, "by user", res.locals?.email);
 
   res.status(StatusCode.OK).json({
     status: "success",
