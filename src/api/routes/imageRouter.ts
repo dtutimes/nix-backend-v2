@@ -42,6 +42,12 @@ router
     protect_edition_image,
     editionStorage.single("image"),
     upload_image,
+  )
+  .put(
+    protect,
+    protect_edition_image,
+    editionStorage.single("image"),
+    update_image,
   );
 router.route("/delete/:filename").delete(protect, protect_delete, delete_image);
 
