@@ -325,7 +325,7 @@ export const delete_image_fs = (
 ) => {
   // filter non-alphanumeric characters
   // constraint from image middleware
-  filename = filename.replace(/[^a-z0-9_.]/g, "");
+  filename = filename.replace(/[^a-z0-9_.-]/g, "");
   console.log("Deleting image".red, filename.red);
   const thumbnail_path = `thumbnails/${filename}_*`;
   const upload_path = `uploads/${filename}`;
@@ -425,7 +425,7 @@ export const update_image = asyncErrorHandler(async (req, res, next) => {
     );
     return next(err);
   }
-  const { filename } = req.params;
+  const filename = req_file.filename;
 
   if (!filename) {
     return next(
